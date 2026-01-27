@@ -1,15 +1,16 @@
 param(
-  [string]$GistUser  = $env:GIST_USER,
-  [string]$GistId    = $env:GIST_ID,
-  [string]$GistRev   = $env:GIST_REV,     # optional: pin revision
+  [string]$RepoOwner = $env:REPO_OWNER,
+  [string]$RepoName  = $env:REPO_NAME,
+  [string]$RepoRev   = $env:REPO_REV,     # branch, tag, or commit hash
   [string]$ConfigDir = $env:CONFIG_DIR,   # optional override
   [switch]$NoBackup
 )
 
 $ErrorActionPreference = "Stop"
 
-if ([string]::IsNullOrWhiteSpace($GistUser)) { $GistUser = "ControlNet" }
-if ([string]::IsNullOrWhiteSpace($GistId))   { $GistId   = "b10f23a707e3515e8fd215770e929b1a" }
+if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = "ControlNet" }
+if ([string]::IsNullOrWhiteSpace($RepoName))  { $RepoName  = "omo-dotfile" }
+if ([string]::IsNullOrWhiteSpace($RepoRev))   { $RepoRev   = "master" }
 
 function Timestamp { (Get-Date).ToString("yyyyMMdd-HHmmss") }
 
@@ -56,14 +57,9 @@ if ([string]::IsNullOrWhiteSpace($ConfigDir)) {
 }
 Ensure-Dir $ConfigDir
 
-# Build URLs (pinned rev if provided; else "latest" raw endpoint)
-if (-not [string]::IsNullOrWhiteSpace($GistRev)) {
-  $UrlOpenCode = "https://gist.githubusercontent.com/$GistUser/$GistId/raw/$GistRev/opencode.jsonc"
-  $UrlOmoc     = "https://gist.githubusercontent.com/$GistUser/$GistId/raw/$GistRev/oh-my-opencode.jsonc"
-} else {
-  $UrlOpenCode = "https://gist.github.com/$GistUser/$GistId/raw/opencode.jsonc"
-  $UrlOmoc     = "https://gist.github.com/$GistUser/$GistId/raw/oh-my-opencode.jsonc"
-}
+# Build URLs
+$UrlOpenCode = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$RepoRev/opencode.jsonc"
+$UrlOmoc     = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$RepoRev/oh-my-opencode.jsonc"
 
 $ts = Timestamp   # <<< FIX: no parentheses
 $tmpDir = Join-Path $env:TEMP ("opencode-pull-" + [Guid]::NewGuid().ToString("N"))

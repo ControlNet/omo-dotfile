@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Download opencode.jsonc + oh-my-opencode.jsonc from your Gist and overwrite *user-level* config.
+# Download opencode.jsonc + oh-my-opencode.jsonc from GitHub repo and overwrite *user-level* config.
 # After install, if opencode.json / oh-my-opencode.json exists, rename it to *.json.bak-<timestamp>
 # so only *.jsonc remains as the active config.
 
-GIST_USER="${GIST_USER:-ControlNet}"
-GIST_ID="${GIST_ID:-b10f23a707e3515e8fd215770e929b1a}"
-GIST_REV="${GIST_REV:-}"   # optional pinned revision hash
+REPO_OWNER="${REPO_OWNER:-ControlNet}"
+REPO_NAME="${REPO_NAME:-omo-dotfile}"
+REPO_REV="${REPO_REV:-master}"   # branch, tag, or commit hash
 CONFIG_DIR="${CONFIG_DIR:-}"  # optional override
 NO_BACKUP="${NO_BACKUP:-0}"   # set to 1 to disable backing up existing .jsonc before overwrite (still renames .json)
 
@@ -16,15 +16,15 @@ usage() {
 sync-opencode-user.sh
 
 Env:
-  GIST_USER=ControlNet
-  GIST_ID=b10f23a707e3515e8fd215770e929b1a
-  GIST_REV=<optional pinned revision hash>
+  REPO_OWNER=ControlNet
+  REPO_NAME=omo-dotfile
+  REPO_REV=master   (branch, tag, or commit hash)
   CONFIG_DIR=<optional override, default: ${XDG_CONFIG_HOME:-~/.config}/opencode>
   NO_BACKUP=1   (optional) do not backup existing .jsonc before overwrite
 
 Examples:
   curl -fsSL <RAW_SCRIPT_URL> | bash
-  GIST_REV=<rev> curl -fsSL <RAW_SCRIPT_URL> | bash
+  REPO_REV=v1.0.0 curl -fsSL <RAW_SCRIPT_URL> | bash
   CONFIG_DIR="$HOME/.config/opencode" curl -fsSL <RAW_SCRIPT_URL> | bash
 EOF
 }
@@ -78,14 +78,8 @@ fi
 mkdir -p "$CONFIG_DIR"
 
 # Build download URLs for the two config files
-if [[ -n "$GIST_REV" ]]; then
-  URL_OPENCODE="https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw/${GIST_REV}/opencode.jsonc"
-  URL_OMOC="https://gist.githubusercontent.com/${GIST_USER}/${GIST_ID}/raw/${GIST_REV}/oh-my-opencode.jsonc"
-else
-  # "latest" raw endpoint (follows redirects)
-  URL_OPENCODE="https://gist.github.com/${GIST_USER}/${GIST_ID}/raw/opencode.jsonc"
-  URL_OMOC="https://gist.github.com/${GIST_USER}/${GIST_ID}/raw/oh-my-opencode.jsonc"
-fi
+URL_OPENCODE="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_REV}/opencode.jsonc"
+URL_OMOC="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_REV}/oh-my-opencode.jsonc"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
